@@ -1,0 +1,8 @@
+
+
+!CONFIGURATION: 'F2803x_DRV8301_RAM' (com.ti.ccstudio.buildDefinitions.C2000.Debug.849709439) [Tue Dec 10 15:34:47 PST 2024]
+
+	!TOOL: 'C2000 Compiler' (com.ti.ccstudio.buildDefinitions.C2000_5.1.exe.compilerDebug.1330338257)
+
+		!WARNING: Unresolved target-tool option 'com.ti.ccstudio.buildDefinitions.C2000_5.1.compilerID.CLA_SUPPORT'
+

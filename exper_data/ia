@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExportImportMemento.1>
+<VarMeta IMemento.internal.id="EnableFlag"/>
+<VarMeta IMemento.internal.id="hall1.Revolutions"/>
+<VarMeta IMemento.internal.id="hall1.HallGpioAccepted"/>
+<VarMeta IMemento.internal.id="ClosedFlag"/>
+<VarMeta IMemento.internal.id="D_com"/>
+<VarMeta IMemento.internal.id="backemf1.theta"/>
+<VarMeta IMemento.internal.id="speed3.speedscaler"/>
+<VarMeta IMemento.internal.id="speed3.speedrpm"/>
+<VarMeta IMemento.internal.id="torque.Out"/>
+<VarMeta IMemento.internal.id="torquecom.Out"/>
+<VarMeta IMemento.internal.id="speed3.Period"/>
+<VarMeta IMemento.internal.id="speed2.EventPeriod_n"/>
+<VarMeta IMemento.internal.id="speed3.dtheta"/>
+<VarMeta IMemento.internal.id="speed3.realspeed"/>
+<VarMeta IMemento.internal.id="speed3.nextspeed"/>
+<VarMeta IMemento.internal.id="backemf1.speed"/>
+<VarMeta IMemento.internal.id="torque.ia"/>
+<VarMeta IMemento.internal.id="torque.ib"/>
+<VarMeta IMemento.internal.id="torque.wr"/>
+<VarMeta IMemento.internal.id="Dutycal.fdown"/>
+<VarMeta IMemento.internal.id="Dutycal.fup"/>
+<VarMeta IMemento.internal.id="Dutycal.test1"/>
+<VarMeta IMemento.internal.id="Dutycal2.Out"/>
+<VarMeta IMemento.internal.id="d_pwm"/>
+<VarMeta IMemento.internal.id="torque.Out"/>
+<VarMeta IMemento.internal.id="speed3.speed_rads"/>
+<VarMeta IMemento.internal.id="Dutycal2.v1"/>
+<VarMeta IMemento.internal.id="Dutycal2.T"/>
+<VarMeta IMemento.internal.id=" torque.wr"/>
+<VarMeta IMemento.internal.id="hall1.HallGpioAccepted "/>
+<VarMeta IMemento.internal.id="commutation2.duty"/>
+<VarMeta IMemento.internal.id="commutation1.delta"/>
+<VarMeta IMemento.internal.id="Dutycal2.den"/>
+<VarMeta IMemento.internal.id="Dutycal2.num"/>
+<VarMeta IMemento.internal.id=" Observation_data_ia"/>
+<VarMeta IMemento.internal.id=" Observation_data_te"/>
+<VarMeta IMemento.internal.id="delta"/>
+</ExportImportMemento.1>
