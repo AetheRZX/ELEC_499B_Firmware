@@ -140,24 +140,24 @@ static const int16 LUTB_hall_state_elec_duration_digit[8] = {
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
 
-static const int16 LUTB_corr_angle_positive_direction_digit[8] = {
-    [HALL_STATE_5] = 11319,
-    [HALL_STATE_4] = 10809,
-    [HALL_STATE_6] = 10901,
-    [HALL_STATE_2] = 10817,
-    [HALL_STATE_3] = 11017,
-    [HALL_STATE_1] = 10673,
-    [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
-    [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
-};
+// static const int16 LUTB_corr_angle_positive_direction_digit[8] = {
+//     [HALL_STATE_5] = 11319,
+//     [HALL_STATE_4] = 10809,
+//     [HALL_STATE_6] = 10901,
+//     [HALL_STATE_2] = 10817,
+//     [HALL_STATE_3] = 11017,
+//     [HALL_STATE_1] = 10673,
+//     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
+//     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
+// };
 
 static const int16 LUTB_corr_angle_negative_direction_digit[8] = {
-    [HALL_STATE_4] = 10526,
-    [HALL_STATE_5] = 11036,
-    [HALL_STATE_1] = 10945,
-    [HALL_STATE_3] = 11028,
-    [HALL_STATE_2] = 10829,
-    [HALL_STATE_6] = 11173,
+    [HALL_STATE_4] = 11036,
+    [HALL_STATE_5] = 10945,
+    [HALL_STATE_1] = 11028,
+    [HALL_STATE_3] = 10829,
+    [HALL_STATE_2] = 11173,
+    [HALL_STATE_6] = 10541,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -3158,11 +3158,30 @@ if (k == 1)
                             speed3.EventPeriod=speed2.EventPeriod_n;
                             speed3.SUflag=FALSE;
                         }
-
                         SE_MACRO1(speed3)
+
+                        '''
+                        // Calculate tau_corr and dtheta using LUTBs
+                            eventPeriod_LUTB = (dtheta_corr_LUTB/dtheta_duration_sector_LUTB[n-1]) * speed2.EventPeriod_n_1;
+                            dtheta_LUTB = speed3.nexttheta - speed3.currenttheta;
+                            
+                            // Calculate the slope for this section of the ramp
+                            nextspeed_LUTB=_IQdiv(speed3.speedscaler,v.eventPeriod_LUTB);                                        
+                            nextspeed_LUTB=_IQmpy(nextspeed_LUTB,v.dtheta_LUTB); 
+                        '''
                     }
 
+                    // if using online filter
+                    // {
                     rg1.Freq = speed3.nextspeed;
+                    //}
+
+                    // else
+                    """                   
+                    // Updates slope
+                    rg1.Freq = nextspeed_LUTB;
+                    """
+                    
                     RG_MACRO(rg1)
     //                fa1.Angle= rg1.Out;   /* motor A 0 */
     //                fa1.phiv=_IQ(0.0);  /* motor D 48V ~0.9/0.7Nm -0.508 */
@@ -3257,42 +3276,14 @@ if (k == 1)
                                 idmean1.data.ids = _IQ(_IQtoF(idmean1.data.idtemp)/idmean1.data.countertemp);
                                 MEAN_FILTER(idmean1)
 
-                                // Get raw states for LUT lookup
-                                Uint16 prev_hw_state = (Uint16)_IQint(idmean1.data.prev_sector);
-                                Uint16 curr_hw_state = hall1.HallGpioAccepted;
-
                                 // Reset accumulator state
                                 idmean1.data.prev_sector = idmean1.data.sector;
                                 idmean1.data.idtemp = _IQ(0);
                                 idmean1.data.countertemp = 0;
                                 ids_avg_cal_enable = FALSE;
 
-                                // Adjust firing angle to achieve MTPA (if enabled)
-                                if (timing_mode == 0) {
-                                    // LUT MODE
-                                    int16 elec_duration_d = LUTB_hall_state_elec_duration_digit[prev_hw_state];
-                                    int16 corr_angle_d;
-                                    if (LutMtpaDir == 1) {
-                                        corr_angle_d = LUTB_corr_angle_positive_direction_digit[curr_hw_state];
-                                    } else {
-                                        corr_angle_d = LUTB_corr_angle_negative_direction_digit[curr_hw_state];
-                                    }
-                                    int32 delta_t_hw_now = (int32)speed2.EventPeriod_n;
-
-                                    if (elec_duration_d != 0) {
-                                        // Calculate the time to wait until next software commutation
-                                        Uint32 tau_corr = (Uint32)( ( (long long)corr_angle_d * (long long)delta_t_hw_now ) / (long long)elec_duration_d );
-                                        
-                                        _iq phase_correction_iq = _IQdiv( _IQ(tau_corr), _IQ(delta_t_hw_now) ); // Asked AI apparently this is for ratio but seems wrong
-
-                                        
-                                        // 1 sector is _IQ(0.1666667) (which is 60 electrical degrees ratio over 360 deg)
-                                        phase_correction_iq = _IQmpy(phase_correction_iq, _IQ(0.1666667));
-                                        
-                                        delta_phiv = -phase_correction_iq; 
-                                        delta_phiv = _IQsat(delta_phiv, _IQ(0.0), _IQ(-0.5));
-                                    }
-                                } else if (MTPAFlag == TRUE){
+                                
+                                if (MTPAFlag == TRUE){
                                     pi1_id.term.Ref = _IQ(0);
                                     pi1_id.term.Fbk = idmean1.data.ids;
                                     PI_MACRO(pi1_id)
