@@ -115,7 +115,8 @@ Uint16 ids_avg_cal_enable=FALSE;
 //
 
 // LUT MTPA User Toggles
-#define LUT_MTPA_MODE 1
+Uint16 timing_mode = 1; // Set to 0 to enable LUT mode, 1 to use old online filter
+int16 LutMtpaDir = 1;   // Set to 1 for positive direction LUT, -1 for negative direction LUT
 
 #define HALL_STATE_5 5
 #define HALL_STATE_4 4
@@ -2221,7 +2222,7 @@ if (k == 1)
         phid = _IQsat(phivf.y, _IQ(-0.05), _IQ(-0.25));
         //phid = _IQ(-0.14);
 
-#if LUT_MTPA_MODE
+        if (timing_mode == 0)
         {
             Uint16 prev_hw_state = speed3.HallGpio; // previous state we were in
             Uint16 curr_hw_state = hall1.HallGpioAccepted; // current state we are in
@@ -2229,31 +2230,34 @@ if (k == 1)
             // use PREVIOUS sector to get current speed proportionality
             int16 elec_duration_d = LUTB_hall_state_elec_duration_digit[prev_hw_state];
             
-            // use CURRENT state (boundary we just crossed into)
+            // Look up correction angle for the CURRENT state (boundary we just crossed into)
             int16 corr_angle_d;
-            // Assuming positive direction
-            corr_angle_d = LUTB_corr_angle_positive_direction_digit[curr_hw_state];
+            if (LutMtpaDir == 1) {
+                corr_angle_d = LUTB_corr_angle_positive_direction_digit[curr_hw_state];
+            } else {
+                corr_angle_d = LUTB_corr_angle_negative_direction_digit[curr_hw_state];
+            }
             
             // time elapsed traversing previous sector
             int32 delta_t_hw_now = (int32)speed2.EventPeriod_n;
 
-            if (elec_duration_d != 0) {
+                 // Calculate the time to wait until next software commutation
                  Uint32 tau_corr = (Uint32)( ( (long long)corr_angle_d * (long long)delta_t_hw_now ) / (long long)elec_duration_d );
-                 _iq tau_corr_iq = _IQdiv(tau_corr, _IQ(65536.0)); // Rough scaled conversion if needed, adjust accordingly
                  
-                 // Directly scaling to phid format roughly (tau_corr / delta_t * 60deg):
                  _iq phase_correction_iq = _IQdiv( _IQ(tau_corr), _IQ(delta_t_hw_now) );
-                 // phase_correction_iq is ratio. 1 sector is _IQ(0.1666667) (60 degree)
+
+                 
+                 // 1 sector is _IQ(0.1666667) (which is 60 electrical degrees ratio over 360 deg)
                  phase_correction_iq = _IQmpy(phase_correction_iq, _IQ(0.1666667));
                  
-                 // Apply negative polarity, because previously I saw phid = [ -0.05, -0.25 ].
+                 // Apply negative polarity assuming phid relies on it being negative offset 
+                 // (based on previous filter phid = [ -0.05, -0.25 ] and phid1 approx logic).
                  phid = -phase_correction_iq; 
 
                  // Saturate it to keep the system safe just in case
                  phid = _IQsat(phid, _IQ(0.0), _IQ(-0.5));
             }
         }
-#endif
     }
     /*
     if (hall1.Revolutions>500){
@@ -2269,7 +2273,16 @@ if (k == 1)
         fa1.phiv1=_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
     }
 
-    FA_FILTER(fa1)
+    if (timing_mode == 0) {
+        // LUT Mode: We want instantaneous, cycle-by-cycle phase correction.
+        // We bypass FA_FILTER so the sharp step changes in phid aren't washed out!
+        fa1.phiv1 = _IQdiv((_IQ(0.5)-D_com),_IQ(2)) + phid;
+        fa1.phiv = fa1.phiv1; 
+    } else {
+        // Online Filter Mode: Keep the legacy low-pass filter active.
+        FA_FILTER(fa1)
+    }
+
     FA_MACRO(fa1)
     theta=fa1.Out;
 
@@ -2295,8 +2308,10 @@ if (k == 1)
                 pi1_id.term.Fbk = _IQdiv(idmean1.data.idtemp,idmean1.data.countertemp);
                 pi1_id.param.Ki = _IQmpy(_IQ(0.2368*BASE_CURRENT*T*2),idmean1.data.countertemp);
                 PI_MACRO(pi1_id)
-                fa1.phiv1=_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
-                //fa1.phiv1=-pi1_id.term.Out+_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                if (timing_mode != 0) {
+                    fa1.phiv1=_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                    //fa1.phiv1=-pi1_id.term.Out+_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                }
             }
         }
     }
@@ -2318,8 +2333,10 @@ if (k == 1)
                 pi1_id.term.Fbk = _IQdiv(idmean1.data.idtemp,idmean1.data.countertemp);
                 pi1_id.param.Ki = _IQmpy(_IQ(0.2368*BASE_CURRENT*T*2),idmean1.data.countertemp);
                 PI_MACRO(pi1_id)
-                fa1.phiv1=_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
-                //fa1.phiv1=-pi1_id.term.Out+_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                if (timing_mode != 0) {
+                    fa1.phiv1=_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                    //fa1.phiv1=-pi1_id.term.Out+_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                }
             }
         }
     }
@@ -2341,8 +2358,10 @@ if (k == 1)
                 pi1_id.term.Fbk = _IQdiv(idmean1.data.idtemp,idmean1.data.countertemp);
                 pi1_id.param.Ki = _IQmpy(_IQ(0.2368*BASE_CURRENT*T*2),idmean1.data.countertemp);
                 PI_MACRO(pi1_id)
-                fa1.phiv1=_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
-                //fa1.phiv1=-pi1_id.term.Out+_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                if (timing_mode != 0) {
+                    fa1.phiv1=_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                    //fa1.phiv1=-pi1_id.term.Out+_IQdiv((_IQ(0.5)-D_com),_IQ(2))+phid;
+                }
             }
 
         }
@@ -3238,6 +3257,10 @@ if (k == 1)
                                 idmean1.data.ids = _IQ(_IQtoF(idmean1.data.idtemp)/idmean1.data.countertemp);
                                 MEAN_FILTER(idmean1)
 
+                                // Get raw states for LUT lookup
+                                Uint16 prev_hw_state = (Uint16)_IQint(idmean1.data.prev_sector);
+                                Uint16 curr_hw_state = hall1.HallGpioAccepted;
+
                                 // Reset accumulator state
                                 idmean1.data.prev_sector = idmean1.data.sector;
                                 idmean1.data.idtemp = _IQ(0);
@@ -3245,7 +3268,31 @@ if (k == 1)
                                 ids_avg_cal_enable = FALSE;
 
                                 // Adjust firing angle to achieve MTPA (if enabled)
-                                if (MTPAFlag == TRUE){
+                                if (timing_mode == 0) {
+                                    // LUT MODE
+                                    int16 elec_duration_d = LUTB_hall_state_elec_duration_digit[prev_hw_state];
+                                    int16 corr_angle_d;
+                                    if (LutMtpaDir == 1) {
+                                        corr_angle_d = LUTB_corr_angle_positive_direction_digit[curr_hw_state];
+                                    } else {
+                                        corr_angle_d = LUTB_corr_angle_negative_direction_digit[curr_hw_state];
+                                    }
+                                    int32 delta_t_hw_now = (int32)speed2.EventPeriod_n;
+
+                                    if (elec_duration_d != 0) {
+                                        // Calculate the time to wait until next software commutation
+                                        Uint32 tau_corr = (Uint32)( ( (long long)corr_angle_d * (long long)delta_t_hw_now ) / (long long)elec_duration_d );
+                                        
+                                        _iq phase_correction_iq = _IQdiv( _IQ(tau_corr), _IQ(delta_t_hw_now) ); // Asked AI apparently this is for ratio but seems wrong
+
+                                        
+                                        // 1 sector is _IQ(0.1666667) (which is 60 electrical degrees ratio over 360 deg)
+                                        phase_correction_iq = _IQmpy(phase_correction_iq, _IQ(0.1666667));
+                                        
+                                        delta_phiv = -phase_correction_iq; 
+                                        delta_phiv = _IQsat(delta_phiv, _IQ(0.0), _IQ(-0.5));
+                                    }
+                                } else if (MTPAFlag == TRUE){
                                     pi1_id.term.Ref = _IQ(0);
                                     pi1_id.term.Fbk = idmean1.data.ids;
                                     PI_MACRO(pi1_id)
