@@ -128,36 +128,40 @@ int16 LutMtpaDir = 1;   // Set to 1 for positive direction LUT, -1 for negative 
 #define HALL_STATE_7 7
 #define HALL_S16_60_PHASE_SHIFT 10923
 
+
 // LUTs defined from Excel
 static const int16 LUTB_hall_state_elec_duration_digit[8] = {
-    [HALL_STATE_5] = 11432,
-    [HALL_STATE_4] = 10831,
-    [HALL_STATE_6] = 11006,
-    [HALL_STATE_2] = 10723,
-    [HALL_STATE_3] = 11267,
-    [HALL_STATE_1] = 10276,
+    [HALL_STATE_5] = 10743,
+    [HALL_STATE_4] = 12336,
+    [HALL_STATE_6] = 9714,
+    [HALL_STATE_2] = 10387,
+    [HALL_STATE_3] = 13158,
+    [HALL_STATE_1] = 9199,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
 
-// static const int16 LUTB_corr_angle_positive_direction_digit[8] = {
-//     [HALL_STATE_5] = 11319,
-//     [HALL_STATE_4] = 10809,
-//     [HALL_STATE_6] = 10901,
-//     [HALL_STATE_2] = 10817,
-//     [HALL_STATE_3] = 11017,
-//     [HALL_STATE_1] = 10673,
+//// Positive Direction
+// static const int16 LUTB_corr_angle[8] = {
+//     [HALL_STATE_5] = 11304,
+//     [HALL_STATE_4] = 11484,
+//     [HALL_STATE_6] = 10071,
+//     [HALL_STATE_2] = 11280,
+//     [HALL_STATE_3] = 11816,
+//     [HALL_STATE_1] = 9581,
 //     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
 //     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 // };
 
+//// Negative Direction
 static const int16 LUTB_corr_angle[8] = {
-    [HALL_STATE_4] = 11775,
+    
     [HALL_STATE_5] = 10361,
-    [HALL_STATE_1] = 10541,
-    [HALL_STATE_3] = 12265,
-    [HALL_STATE_2] = 10029,
+    [HALL_STATE_4] = 11775,
     [HALL_STATE_6] = 10566,
+    [HALL_STATE_2] = 10029,
+    [HALL_STATE_3] = 12265,
+    [HALL_STATE_1] = 10541,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -3164,18 +3168,20 @@ if (k == 1)
 
                         
                         Uint16 curr_hall = hall1.HallGpioAccepted;
-                        Uint16 prev_hall = curr_hall - 1;
+
+                        const Uint16 PREV_HALL_MAP[7] = {0, 5, 3, 1, 6, 4, 2};
+                        // Grab the previous hall directly from the map
+                        Uint16 prev_hall = PREV_HALL_MAP[curr_hall];
                         if (prev_hall == 0) prev_hall = 6;
                         
-                        // Calculate tau corr and dtheta using LUTBs
-                        int32 EventPeriod_LUTB = (int32)( ((long long)LUTB_corr_angle[curr_hall] * (long long)speed2.EventPeriod_n_1) / (long long)LUTB_hall_state_elec_duration_digit[prev_hall] );
                         
-                        _iq dtheta_LUTB = speed3.nexttheta + speed3.phic - speed3.currenttheta;
-                        if (dtheta_LUTB < _IQ(0.0)) dtheta_LUTB += _IQ(1.0);
-                            
-                        // Calculate the slope for this section of the ramp
-                        nextspeed_LUTB = _IQdiv(speed3.speedscaler, EventPeriod_LUTB);                                        
-                        nextspeed_LUTB = _IQmpy(nextspeed_LUTB, dtheta_LUTB); 
+                        // int32 EventPeriod_LUTB = (int32)( (LUTB_corr_angle[curr_hall] * speed2.EventPeriod_n_1) / LUTB_hall_state_elec_duration_digit[prev_hall] ); // I need long long (gives me better result)
+                        int32 EventPeriod_LUTB = (int32)( ((long long)LUTB_corr_angle[curr_hall] * (long long)speed2.EventPeriod_n_1) / (long long)LUTB_hall_state_elec_duration_digit[prev_hall] );
+                        // _iq dtheta_LUTB = speed3.nexttheta + speed3.phic - speed3.currenttheta;  //This produces negative number sometimes so i just use speed3.dtheta           
+                        
+                        nextspeed_LUTB = _IQdiv(speed3.speedscaler, EventPeriod_LUTB); 
+                        // nextspeed_LUTB = _IQmpy(nextspeed_LUTB, dtheta_LUTB);                                       
+                        nextspeed_LUTB = _IQmpy(nextspeed_LUTB, speed3.dtheta);
                     }
 
                     // if using online filter
