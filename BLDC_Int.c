@@ -151,13 +151,13 @@ static const int16 LUTB_hall_state_elec_duration_digit[8] = {
 //     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 // };
 
-static const int16 LUTB_corr_angle_negative_direction_digit[8] = {
-    [HALL_STATE_4] = 11036,
-    [HALL_STATE_5] = 10945,
-    [HALL_STATE_1] = 11028,
-    [HALL_STATE_3] = 10829,
-    [HALL_STATE_2] = 11173,
-    [HALL_STATE_6] = 10541,
+static const int16 LUTB_corr_angle[8] = {
+    [HALL_STATE_4] = 11775,
+    [HALL_STATE_5] = 10361,
+    [HALL_STATE_1] = 10541,
+    [HALL_STATE_3] = 12265,
+    [HALL_STATE_2] = 10029,
+    [HALL_STATE_6] = 10566,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -199,6 +199,7 @@ _iq cal_offset_B = _IQ15(0.5039);      //0.5034: F28035
 _iq cal_offset_C = _IQ15(0.5069);
 _iq ad = _IQ(0);
 _iq Out = _IQ(0);
+_iq nextspeed_LUTB;
 
 
 int16 PwmDacCh1 = 0;
@@ -3143,6 +3144,7 @@ if (k == 1)
                 // ------------------------------------------------------------------------------
                 //    Connect inputs of the HALL module and call the Hall sensor read macro.
                 // ------------------------------------------------------------------------------
+                    
                     HALL3_READ_MACRO(hall1)
                     if (hall1.CmtnTrigHall==0x7FFF)
                     {
@@ -3160,27 +3162,32 @@ if (k == 1)
                         }
                         SE_MACRO1(speed3)
 
-                        '''
-                        // Calculate tau_corr and dtheta using LUTBs
-                            eventPeriod_LUTB = (dtheta_corr_LUTB/dtheta_duration_sector_LUTB[n-1]) * speed2.EventPeriod_n_1;
-                            dtheta_LUTB = speed3.nexttheta - speed3.currenttheta;
+                        
+                        Uint16 curr_hall = hall1.HallGpioAccepted;
+                        Uint16 prev_hall = curr_hall - 1;
+                        if (prev_hall == 0) prev_hall = 6;
+                        
+                        // Calculate tau corr and dtheta using LUTBs
+                        int32 EventPeriod_LUTB = (int32)( ((long long)LUTB_corr_angle[curr_hall] * (long long)speed2.EventPeriod_n_1) / (long long)LUTB_hall_state_elec_duration_digit[prev_hall] );
+                        
+                        _iq dtheta_LUTB = speed3.nexttheta + speed3.phic - speed3.currenttheta;
+                        if (dtheta_LUTB < _IQ(0.0)) dtheta_LUTB += _IQ(1.0);
                             
-                            // Calculate the slope for this section of the ramp
-                            nextspeed_LUTB=_IQdiv(speed3.speedscaler,v.eventPeriod_LUTB);                                        
-                            nextspeed_LUTB=_IQmpy(nextspeed_LUTB,v.dtheta_LUTB); 
-                        '''
+                        // Calculate the slope for this section of the ramp
+                        nextspeed_LUTB = _IQdiv(speed3.speedscaler, EventPeriod_LUTB);                                        
+                        nextspeed_LUTB = _IQmpy(nextspeed_LUTB, dtheta_LUTB); 
                     }
 
                     // if using online filter
                     // {
+
+                    if (timing_mode == 1)
                     rg1.Freq = speed3.nextspeed;
                     //}
 
-                    // else
-                    """                   
-                    // Updates slope
+                    else if (timing_mode == 0)
                     rg1.Freq = nextspeed_LUTB;
-                    """
+                    
                     
                     RG_MACRO(rg1)
     //                fa1.Angle= rg1.Out;   /* motor A 0 */
