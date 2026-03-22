@@ -475,12 +475,12 @@ DLOG_4CH dlog = DLOG_4CH_DEFAULTS;
 // Initialize Hall module
     hall1.DebounceAmount = 1;
     hall1.Revolutions = -1;
-    hall1.HallMap[0] = 5;
+    hall1.HallMap[0] = 6;
     hall1.HallMap[1] = 4;
-    hall1.HallMap[2] = 6;
-    hall1.HallMap[3] = 2;
+    hall1.HallMap[2] = 5;
+    hall1.HallMap[3] = 1;
     hall1.HallMap[4] = 3;
-    hall1.HallMap[5] = 1;
+    hall1.HallMap[5] = 2;
     HALL3_INIT_MACRO(hall1)
 
 
@@ -701,12 +701,12 @@ void A1(void) // SPARE (not used)
 
 	    hall1.DebounceAmount = 1;
 	    hall1.Revolutions = -1;
-	    hall1.HallMap[0] = 5;
+	    hall1.HallMap[0] = 6;
 	    hall1.HallMap[1] = 4;
-	    hall1.HallMap[2] = 6;
-	    hall1.HallMap[3] = 2;
+	    hall1.HallMap[2] = 5;
+	    hall1.HallMap[3] = 1;
 	    hall1.HallMap[4] = 3;
-	    hall1.HallMap[5] = 1;
+	    hall1.HallMap[5] = 2;
 	    HALL3_INIT_MACRO(hall1)
 
 		/*speed1.InputSelect = 0;

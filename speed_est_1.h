@@ -72,12 +72,12 @@ Default initalizer for the SPEED_ESTIMATION object.
             v.dtheta = _IQ(0.166666666666667);                                                  \
         }else{                                                                                  \
             switch (v.HallGpio){                            \
-            case 6: v.nexttheta = SEC6_NEXTANGLE; break;                      \
-            case 2: v.nexttheta = SEC2_NEXTANGLE; break;                     \
-            case 3: v.nexttheta = SEC3_NEXTANGLE; break;                                   \
-            case 1: v.nexttheta = SEC1_NEXTANGLE; break;                      \
-            case 5: v.nexttheta = SEC5_NEXTANGLE; break;                      \
-            case 4: v.nexttheta = SEC4_NEXTANGLE; break;                                   \
+            case 6: v.nexttheta = SEC5_NEXTANGLE; break;                      \
+            case 4: v.nexttheta = SEC4_NEXTANGLE; break;                     \
+            case 5: v.nexttheta = SEC6_NEXTANGLE; break;                                   \
+            case 1: v.nexttheta = SEC2_NEXTANGLE; break;                      \
+            case 3: v.nexttheta = SEC3_NEXTANGLE; break;                      \
+            case 2: v.nexttheta = SEC1_NEXTANGLE; break;                                   \
             }                                                                                   \
             v.dtheta=v.nexttheta+v.phic-v.currenttheta;                                                \
             if (v.dtheta<_IQ(0))                                                                \
