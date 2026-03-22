@@ -153,14 +153,14 @@ int16 LutMtpaDir = 1;   // Set to 1 for positive direction LUT, -1 for negative 
 //     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 // };
 
-// Ryan's LUT V2
+// Measured LUT
 static const int16 LUTB_hall_state_elec_duration_digit[8] = {
-    [HALL_STATE_5] = 12365,
-    [HALL_STATE_4] = 10248,
-    [HALL_STATE_6] = 10448,
-    [HALL_STATE_2] = 11843,
-    [HALL_STATE_3] = 10645,
-    [HALL_STATE_1] = 9987,
+    [HALL_STATE_5] = 10848,
+    [HALL_STATE_4] = 10123,
+    [HALL_STATE_6] = 10614,
+    [HALL_STATE_2] = 13181,
+    [HALL_STATE_3] = 8067,
+    [HALL_STATE_1] = 12703,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -200,14 +200,14 @@ static const int16 LUTB_hall_state_elec_duration_digit[8] = {
 //     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 // };
 
-// Ryan phi corr V2
+// Measured phi correction
 static const int16 LUTB_corr_angle[8] = {
-    [HALL_STATE_5] = 11698,
-    [HALL_STATE_4] = 10256,
-    [HALL_STATE_6] = 10930,
-    [HALL_STATE_2] = 11405,
-    [HALL_STATE_3] = 10485,
-    [HALL_STATE_1] = 10762,
+    [HALL_STATE_5] = 11320,
+    [HALL_STATE_4] = 10521,
+    [HALL_STATE_6] = 10213,
+    [HALL_STATE_2] = 12471,
+    [HALL_STATE_3] = 9615,
+    [HALL_STATE_1] = 11395,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -3215,7 +3215,7 @@ if (k == 1)
                         
                         Uint16 curr_hall = hall1.HallGpioAccepted;
 
-                        const Uint16 PREV_HALL_MAP[7] = {0, 3, 6, 2, 5, 1, 4};
+                        const Uint16 PREV_HALL_MAP[7] = {0, 5, 3, 1, 6, 4, 2};
 
                         // const Uint16 my_hall_to_mark_hall_conversion[7] = {0, 1, 4, 5, 2, 3, 6};
                         // Uint16 mark_equiv_curr_hall = my_hall_to_mark_hall_conversion[curr_hall];
