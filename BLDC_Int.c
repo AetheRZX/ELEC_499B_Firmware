@@ -155,12 +155,12 @@ int16 LutMtpaDir = 1;   // Set to 1 for positive direction LUT, -1 for negative 
 
 // Ryan's LUT V2
 static const int16 LUTB_hall_state_elec_duration_digit[8] = {
-    [HALL_STATE_5] = 12526,
-    [HALL_STATE_4] = 10030,
-    [HALL_STATE_6] = 10508,
-    [HALL_STATE_2] = 11769,
-    [HALL_STATE_3] = 10616,
-    [HALL_STATE_1] = 10085,
+    [HALL_STATE_5] = 12365,
+    [HALL_STATE_4] = 10248,
+    [HALL_STATE_6] = 10448,
+    [HALL_STATE_2] = 11843,
+    [HALL_STATE_3] = 10645,
+    [HALL_STATE_1] = 9987,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -202,12 +202,12 @@ static const int16 LUTB_hall_state_elec_duration_digit[8] = {
 
 // Ryan phi corr V2
 static const int16 LUTB_corr_angle[8] = {
-    [HALL_STATE_5] = 11688,
-    [HALL_STATE_4] = 10084,
-    [HALL_STATE_6] = 10977,
-    [HALL_STATE_2] = 11391,
-    [HALL_STATE_3] = 10545,
-    [HALL_STATE_1] = 10851,
+    [HALL_STATE_5] = 11698,
+    [HALL_STATE_4] = 10256,
+    [HALL_STATE_6] = 10930,
+    [HALL_STATE_2] = 11405,
+    [HALL_STATE_3] = 10485,
+    [HALL_STATE_1] = 10762,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -3215,18 +3215,18 @@ if (k == 1)
                         
                         Uint16 curr_hall = hall1.HallGpioAccepted;
 
-                        // const Uint16 PREV_HALL_MAP[7] = {0, 3, 6, 2, 5, 1, 4};
+                        const Uint16 PREV_HALL_MAP[7] = {0, 3, 6, 2, 5, 1, 4};
 
-                        const Uint16 my_hall_to_mark_hall_conversion[7] = {0, 1, 4, 5, 2, 3, 6};
-                        Uint16 mark_equiv_curr_hall = my_hall_to_mark_hall_conversion[curr_hall];
-                        curr_hall = mark_equiv_curr_hall;
+                        // const Uint16 my_hall_to_mark_hall_conversion[7] = {0, 1, 4, 5, 2, 3, 6};
+                        // Uint16 mark_equiv_curr_hall = my_hall_to_mark_hall_conversion[curr_hall];
+                        // curr_hall = mark_equiv_curr_hall;
 
-                        const Uint16 MARK_PREV_HALL_MAP[7] = {0, 5, 3, 1, 6, 4, 2};
-                        // Grab the previous hall directly from the map
-                        Uint16 prev_hall = MARK_PREV_HALL_MAP[curr_hall];
+                        // const Uint16 MARK_PREV_HALL_MAP[7] = {0, 5, 3, 1, 6, 4, 2};
+                        // // Grab the previous hall directly from the map
+                        // Uint16 prev_hall = MARK_PREV_HALL_MAP[curr_hall];
                          
                         // // Grab the previous hall directly from the map
-                        // Uint16 prev_hall = PREV_HALL_MAP[curr_hall];
+                        Uint16 prev_hall = PREV_HALL_MAP[curr_hall];
                         
                         
                         
@@ -3455,10 +3455,7 @@ if (k == 1)
 //                    PwmDacCh1 = (int)((_IQ24toF(torque.ec)+1)*15000);
 //                    PwmDacCh2 = (int)(_IQ24toF(rg1.Out)*5000); //---> angle
                     PwmDacCh2 = (int)(_IQ24toF(idmean1.data.ids)*50000+15000);
-                    PwmDacCh3 = (int)(_IQ24toF(delta_phiv)*100000+15000);
-#if defined(DRV8301) || defined(DRV8302)
-                    PwmDacCh4 = (hall1.HallGpioAccepted * 4096.0L);
-#endif
+                    PwmDacCh3 = (hall1.HallGpioAccepted * 4096.0L);
 //                    DlogCh1 = _IQtoQ15(theta);
 //                    DlogCh1 = _IQtoQ15(idmean1.trans.Ds);
 //                    DlogCh1 = _IQtoQ15(_IQmpy(iqIaIn,_IQ(BASE_CURRENT)));
