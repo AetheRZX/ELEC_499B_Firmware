@@ -99,6 +99,15 @@ int16  DFuncDesired = (int16)_IQtoQ15(_IQ(1));
 #define SEC2_NEXTANGLE  _IQ(0.8333333) // DEG_300
 #endif
 
+#if (MOTOR_SELECT == MOTOR_C)
+#define SEC6_NEXTANGLE  _IQ(0)         // DEG_0
+#define SEC4_NEXTANGLE  _IQ(0.1666667) // DEG_60
+#define SEC5_NEXTANGLE  _IQ(0.3333333) // DEG_120
+#define SEC1_NEXTANGLE  _IQ(0.5)       // DEG_180
+#define SEC3_NEXTANGLE  _IQ(0.6666667) // DEG_240
+#define SEC2_NEXTANGLE  _IQ(0.8333333) // DEG_300
+#endif
+
 float ids_float = 0;
 _iq iqIaIn = 0;
 _iq iqIbIn = 0;
@@ -153,14 +162,14 @@ int16 LutMtpaDir = 1;   // Set to 1 for positive direction LUT, -1 for negative 
 //     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 // };
 
-// Measured LUT
+// Measured LUT MOTOR C
 static const int16 LUTB_hall_state_elec_duration_digit[8] = {
-    [HALL_STATE_5] = 10848,
-    [HALL_STATE_4] = 10123,
-    [HALL_STATE_6] = 10614,
-    [HALL_STATE_2] = 13181,
-    [HALL_STATE_3] = 8067,
-    [HALL_STATE_1] = 12703,
+    [HALL_STATE_5] = 10427,
+    [HALL_STATE_1] = 12842,
+    [HALL_STATE_3] = 8398,
+    [HALL_STATE_2] = 12678,
+    [HALL_STATE_6] = 11069,
+    [HALL_STATE_4] = 10121,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
@@ -202,15 +211,26 @@ static const int16 LUTB_hall_state_elec_duration_digit[8] = {
 
 // Measured phi correction
 static const int16 LUTB_corr_angle[8] = {
-    [HALL_STATE_5] = 11320,
-    [HALL_STATE_4] = 10521,
-    [HALL_STATE_6] = 10213,
-    [HALL_STATE_2] = 12471,
-    [HALL_STATE_3] = 9615,
-    [HALL_STATE_1] = 11395,
+    [HALL_STATE_5] = 11137,
+    [HALL_STATE_1] = 11632,
+    [HALL_STATE_3] = 9713,
+    [HALL_STATE_2] = 12237,
+    [HALL_STATE_6] = 10482,
+    [HALL_STATE_4] = 10335,
     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
 };
+
+// static const int16 LUTB_corr_angle[8] = {
+//     [HALL_STATE_5] = 10213,
+//     [HALL_STATE_1] = 12133,
+//     [HALL_STATE_3] = 9608,
+//     [HALL_STATE_2] = 11364,
+//     [HALL_STATE_6] = 11510,
+//     [HALL_STATE_4] = 10708,
+//     [HALL_STATE_0] = HALL_S16_60_PHASE_SHIFT,
+//     [HALL_STATE_7] = HALL_S16_60_PHASE_SHIFT, // safe defaults for invalid states
+// };
 
 float32 T = 0.001/ISR_FREQUENCY;    // Samping period (sec), see parameter.h 
 
@@ -475,12 +495,12 @@ DLOG_4CH dlog = DLOG_4CH_DEFAULTS;
 // Initialize Hall module
     hall1.DebounceAmount = 1;
     hall1.Revolutions = -1;
-    hall1.HallMap[0] = 6;
+    hall1.HallMap[0] = 5;
     hall1.HallMap[1] = 4;
-    hall1.HallMap[2] = 5;
-    hall1.HallMap[3] = 1;
+    hall1.HallMap[2] = 6;
+    hall1.HallMap[3] = 2;
     hall1.HallMap[4] = 3;
-    hall1.HallMap[5] = 2;
+    hall1.HallMap[5] = 1;
     HALL3_INIT_MACRO(hall1)
 
 
@@ -701,12 +721,12 @@ void A1(void) // SPARE (not used)
 
 	    hall1.DebounceAmount = 1;
 	    hall1.Revolutions = -1;
-	    hall1.HallMap[0] = 6;
+	    hall1.HallMap[0] = 5;
 	    hall1.HallMap[1] = 4;
-	    hall1.HallMap[2] = 5;
-	    hall1.HallMap[3] = 1;
+	    hall1.HallMap[2] = 6;
+	    hall1.HallMap[3] = 2;
 	    hall1.HallMap[4] = 3;
-	    hall1.HallMap[5] = 2;
+	    hall1.HallMap[5] = 1;
 	    HALL3_INIT_MACRO(hall1)
 
 		/*speed1.InputSelect = 0;
@@ -3068,7 +3088,7 @@ if (k == 1)
 
                 if (ClosedFlag == FALSE)
                 {
-#if (MOTOR_SELECT==MOTOR_A)
+#if (MOTOR_SELECT==MOTOR_A || MOTOR_SELECT == MOTOR_C)
         // PHASE A:
         // High side:
         pwmcntl1.Duty1 = /*_IQ(1)-*/_IQmpy(_IQ((hall1.HallGpioAccepted==3)||(hall1.HallGpioAccepted==1)),d_pwm);
@@ -3382,7 +3402,7 @@ if (k == 1)
 
                     if (ClosedFlag == FALSE)
                     {
-                        #if (MOTOR_SELECT==MOTOR_A)
+                        #if (MOTOR_SELECT==MOTOR_A || MOTOR_SELECT == MOTOR_C)
                         // PHASE A:
                         // High side:
                         pwmcntl1.Duty1 = /*_IQ(1)-*/_IQmpy(_IQ((hall1.HallGpioAccepted==3)||(hall1.HallGpioAccepted==1)),d_pwm);
@@ -3510,8 +3530,8 @@ if (k == 1)
 	PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
 #endif
 
-
-}// ISR Ends Here
+}
+// ISR Ends Here
 
 
 //===========================================================================

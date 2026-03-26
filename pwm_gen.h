@@ -76,13 +76,12 @@ typedef PWMgen *PWMgen_handle;
                 v.g5 = _IQmpy(v.d_pwm,_IQ((theta_shifted>=DEG_210-ad)&&(theta_shifted<DEG_330+ad)));\
                 v.g2 = _IQ((theta_shifted>=DEG_150-ad)&&(theta_shifted<DEG_270+ad));\
                 v.g1 = _IQmpy(v.d_pwm,_IQ((((theta_shifted>=DEG_330-ad)&&(theta_shifted<DEG_360)))||(theta_shifted>=DEG_0)&&(theta_shifted<DEG_90+ad)));\*/\
-                \
-                v.g1 = _IQmpy(v.d_pwm,_IQ((((v.theta_prime>=SEC2_NEXTANGLE)&&(v.theta_prime<DEG_360)))||(v.theta_prime>=DEG_0)&&(v.theta_prime<SEC1_NEXTANGLE)));\
-                v.g2 = _IQ((v.theta_prime>=SEC5_NEXTANGLE)&&(v.theta_prime<SEC6_NEXTANGLE));\
-                v.g3 = _IQmpy(v.d_pwm,_IQ(((v.theta_prime>=SEC1_NEXTANGLE)&&(v.theta_prime<SEC4_NEXTANGLE))));\
-                v.g4 = _IQ((((v.theta_prime>=SEC6_NEXTANGLE)&&(v.theta_prime<DEG_360))));\
-                v.g5 = _IQmpy(v.d_pwm,_IQ((v.theta_prime>=SEC4_NEXTANGLE)&&(v.theta_prime<SEC2_NEXTANGLE)));\
-                v.g6 = _IQ((v.theta_prime>=SEC3_NEXTANGLE)&&(v.theta_prime<SEC5_NEXTANGLE));\
+                v.g1 = _IQmpy(v.d_pwm,_IQ((((v.theta_prime>=SEC5_NEXTANGLE)&&(v.theta_prime<SEC3_NEXTANGLE)))));\
+                v.g2 = _IQ(((v.theta_prime>=SEC2_NEXTANGLE)&&(v.theta_prime<DEG_360))||(v.theta_prime>=DEG_0) && (v.theta_prime < SEC4_NEXTANGLE));\
+                v.g3 = _IQmpy(v.d_pwm,_IQ(((v.theta_prime>=SEC6_NEXTANGLE)&&(v.theta_prime<SEC5_NEXTANGLE))));\
+                v.g4 = _IQ((((v.theta_prime>=SEC1_NEXTANGLE)&&(v.theta_prime<SEC2_NEXTANGLE))));\
+                v.g5 = _IQmpy(v.d_pwm,_IQ((v.theta_prime>=SEC3_NEXTANGLE)&&(v.theta_prime<DEG_360)));\
+                v.g6 = _IQ((v.theta_prime>=SEC4_NEXTANGLE)&&(v.theta_prime<SEC1_NEXTANGLE));\
                  break; \
                   }
 //            v.g4 = _IQ((v.theta>=_IQ(0.0))&&(v.theta<_IQ(0.5)));\

@@ -42,7 +42,8 @@ This line sets the BUILDLEVEL to one of the available choices.
 
 #define MOTOR_A 1 // Large misalignment in Hall Sensors
 #define MOTOR_D 2
-#define MOTOR_SELECT MOTOR_A
+#define MOTOR_C 3
+#define MOTOR_SELECT MOTOR_C
 
 #ifndef TRUE
 #define FALSE 0
