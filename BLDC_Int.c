@@ -271,6 +271,17 @@ _iq ad = _IQ(0);
 _iq Out = _IQ(0);
 _iq nextspeed_LUTB;
 
+// LUTB speed alpha filter
+// LUTB_speed_alpha: Q8 coefficient, range 0-256.
+//   256 = alpha=1.0 (no filtering, raw sample)
+//   128 = alpha=0.5 (moderate filtering)
+//    26 = alpha~0.1 (heavy filtering)
+//     0 = frozen (output never updates)
+// Adjust in CCS watch table during debug.
+Uint16 LUTB_speed_alpha       = 26;     // tunable in CCS watch table
+int32  LUTB_filtered_ratio_q15 = 0;     // alpha-filtered (EventPeriod_n_1 / LUTB_duration) in Q15
+Uint16 LUTB_filter_initialized = 0;     // 0 = not yet seeded on first hall tick
+
 
 int16 PwmDacCh1 = 0;
 int16 PwmDacCh2 = 0;
@@ -747,6 +758,9 @@ void A1(void) // SPARE (not used)
 		speed2.EventPeriod_n_4 = 0;
 		speed2.EventPeriod_n_5 = 0;
 		speed2.EventPeriod_n_6 = 0;
+
+        LUTB_filtered_ratio_q15 = 0;
+        LUTB_filter_initialized = 0;
 
         speed3.nexttheta = _IQ(0);
         speed3.currenttheta = _IQ(0);
@@ -3251,7 +3265,32 @@ if (k == 1)
                         
                         
                         // int32 EventPeriod_LUTB = (int32)( (LUTB_corr_angle[curr_hall] * speed2.EventPeriod_n_1) / LUTB_hall_state_elec_duration_digit[prev_hall] ); // I need long long (gives me better result)
-                        int32 EventPeriod_LUTB = (int32)( ((long long)LUTB_corr_angle[curr_hall] * (long long)speed2.EventPeriod_n_1) / (long long)LUTB_hall_state_elec_duration_digit[prev_hall] );
+                        // int32 EventPeriod_LUTB = (int32)( ((long long)LUTB_corr_angle[curr_hall] * (long long)speed2.EventPeriod_n_1) / (long long)LUTB_hall_state_elec_duration_digit[prev_hall] ); // pre-filter
+
+                        // Alpha filter on speed ratio = EventPeriod_n_1 / LUTB_duration (Q15 scaled)
+                        // Speed = LUTB_duration / EventPeriod_n_1, so filtering this ratio smooths speed.
+                        int32 LUTB_raw_ratio_q15 = (int32)(
+                            ((long long)speed2.EventPeriod_n_1 << 15) /
+                            (long long)LUTB_hall_state_elec_duration_digit[prev_hall]);
+
+                        if (!LUTB_filter_initialized)
+                        {
+                            // Seed filter with first measurement to avoid startup transient
+                            LUTB_filtered_ratio_q15 = LUTB_raw_ratio_q15;
+                            LUTB_filter_initialized = 1;
+                        }
+                        else
+                        {
+                            // filtered += (LUTB_speed_alpha / 256) * (raw - filtered)
+                            // LUTB_speed_alpha range: 0 (frozen) to 256 (no filter)
+                            LUTB_filtered_ratio_q15 += (int32)(
+                                ((long long)LUTB_speed_alpha *
+                                 (long long)(LUTB_raw_ratio_q15 - LUTB_filtered_ratio_q15)) >> 8);
+                        }
+
+                        int32 EventPeriod_LUTB = (int32)(
+                            ((long long)LUTB_corr_angle[curr_hall] *
+                             (long long)LUTB_filtered_ratio_q15) >> 15);
                         // _iq dtheta_LUTB = speed3.nexttheta + speed3.phic - speed3.currenttheta;  //This produces negative number sometimes so i just use speed3.dtheta           
                         
                         nextspeed_LUTB = _IQdiv(speed3.speedscaler, EventPeriod_LUTB); 
