@@ -3383,11 +3383,15 @@ if (k == 1)
                     // mean of ids && PI controller
                     // ------------------------------------------------------------------------------
 //                    if (hall1.Revolutions>100){
-                        idmean1.data.sector=_IQ(hall1.HallGpioAccepted);
+                        idmean1.data.sector= _IQ(hall1.HallGpioAccepted);
                         idmean1.trans.As=iqIaIn;
                         idmean1.trans.Bs=iqIbIn;
                         idmean1.trans.Cs=iqIcIn;
-                        idmean1.trans.Angle = theta;
+                        _iq new_theta = theta - _IQ(0.5);
+                        if (new_theta <_IQ(0)) new_theta += _IQ(1.0);
+                        new_theta = -(new_theta - _IQ(1.0));
+                        
+                        idmean1.trans.Angle = new_theta;
                         MEAN_MACRO(idmean1)
 
                         /*When reaching a (software) state transition, calculate and update the average id and restart the counter*/
@@ -3414,7 +3418,7 @@ if (k == 1)
                                     pi1_id.term.Ref = _IQ(0);
                                     pi1_id.term.Fbk = idmean1.data.ids;
                                     PI_MACRO(pi1_id)
-                                    delta_phiv = pi1_id.term.Out;
+                                    delta_phiv = -pi1_id.term.Out;
                                     delta_phiv_storage[0] = delta_phiv_storage[1];
                                     delta_phiv_storage[1] = delta_phiv_storage[2];
                                     delta_phiv_storage[2] = delta_phiv_storage[3];
@@ -3510,11 +3514,16 @@ if (k == 1)
 //                    DlogCh1 = _IQtoQ15(iqIaIn);
 //                    PwmDacCh1 = (int)(_IQ24toF(rg1.Out)*5000); ---> angle
                     PwmDacCh1 = (int)(_IQ24toF(idmean1.trans.Ds)*50000+15000);
+                    // PwmDacCh1 = (int)(_IQ24toF(theta)*50000+15000);
+
 //                    PwmDacCh1 = (int)((_IQ24toF(iqIbIn)+1)*15000);
 //                    PwmDacCh1 = (int)((_IQ24toF(torque.ec)+1)*15000);
 //                    PwmDacCh2 = (int)(_IQ24toF(rg1.Out)*5000); //---> angle
                     PwmDacCh2 = (int)(_IQ24toF(idmean1.data.ids)*50000+15000);
-                    PwmDacCh3 = (hall1.HallGpioAccepted * 4096.0L);
+
+                    PwmDacCh3 = (int)(_IQ24toF(delta_phiv)*100000+15000);
+                    // PwmDacCh3 = (hall1.HallGpioAccepted * 4096.0L);
+                    // PwmDacCh3 = _IQtoQ15(iqIaIn);
 //                    DlogCh1 = _IQtoQ15(theta);
 //                    DlogCh1 = _IQtoQ15(idmean1.trans.Ds);
 //                    DlogCh1 = _IQtoQ15(_IQmpy(iqIaIn,_IQ(BASE_CURRENT)));
